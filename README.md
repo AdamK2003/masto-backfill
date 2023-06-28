@@ -5,7 +5,7 @@ This tool fetches posts from Mastodon (or Mastodon-compatible) instances and use
 ## How to use?
 
 - Clone the repository and run `npm i` to install the dependencies
-- Copy `config.template.yml` to `config.yml` and edit it
+- Copy `config.template.yml` to `config.yml` and edit it (you can get a token [here](https://getauth.thms.uk/?scopes=read&client_name=masto-backfill))
 - Run `node index.js` or `npm run start`
 - Watch the magic happen
 
