@@ -48,7 +48,7 @@ for (let instance in requests) {
       baseURL: `https://${instance}`,
       timeout: 10000,
       headers: {
-        'User-Agent': 'masto-backfill/0.1.0 (Contact: +https://plrm.adamski2003.lol/adam)'
+        'User-Agent': 'masto-backfill/1.0.0)'
       }
     }),
     { 
@@ -75,7 +75,7 @@ for (let instance of config.instances) {
         baseURL: `https://${instance.instance}`,
         timeout: 20000,
         headers: {
-          'User-Agent': 'masto-backfill/0.1.0 (Contact: +https://plrm.adamski2003.lol/adam)',
+          'User-Agent': 'masto-backfill/1.0.0',
           'Authorization': 'Bearer ' + instance.token,
         }
       }),
@@ -129,7 +129,7 @@ events.on('newPosts', (posts) => {
         console.log(`Fetched ${post} on ${outputInstances[instance].instance}`);
       })
       .catch((error) => {
-        console.log(error);
+        console.log(`Error fetching ${post} on ${outputInstances[instance].instance}; error: ${error.code}`);
       })
       // */
 
