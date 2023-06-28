@@ -17,7 +17,7 @@ The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing instance(s)
 
 Here's a list of filters you can use:
 
-- `local`, `remote` (users and tags) - only fetch local/remote posts, when both are set, the script will behave as if neither were set (and fetch all posts)
+- `local`, `remote` (`$public` and tags) - only fetch local/remote posts, when both are set, the script will behave as if neither were set (and fetch all posts)
 - `+tag` (tags only) - only fetch posts with this tag, example: `+art`, multiple `+tag` filters can be used and will behave as an AND
 - `?tag` (tags only) - only fetch posts with this tag, example: `?art`, multiple `?tag` filters can be used and will behave as an OR
 - `-tag`/`!tag` (tags only) - only fetch posts without this tag, example: `-nsfw`, multiple `-tag` filters can be used and will behave as a NOR
