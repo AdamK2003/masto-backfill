@@ -110,6 +110,11 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
     posts.push(post.url);
   }
 
+  if(posts.length === 0) {
+    console.log(`No more posts found on ${instance}${path}`);
+    return;
+  }
+
   // console.log(posts);
 
   if(posts.length > count) {
