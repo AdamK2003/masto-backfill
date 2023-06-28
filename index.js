@@ -48,7 +48,7 @@ for (let instance in requests) {
       baseURL: `https://${instance}`,
       timeout: 10000,
       headers: {
-        'User-Agent': 'masto-backfill/1.0.0)'
+        'User-Agent': 'masto-backfill/1.0.0'
       }
     }),
     { 
