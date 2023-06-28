@@ -1,0 +1,19 @@
+instances:
+  - instance: instance.tld
+    token: "yourTokenHere"
+directives:
+  - instances:
+      - instance1.tld
+      - instance2.tld
+    timelines:
+      - $public:local
+      - art:50:+watercolor
+  - instances:
+      - instance2.tld
+      - instance3.tld
+    timelines:
+      - $public
+      - science:80
+users:
+  - "@user@instance3.tld"
+  - "@user2@instance4.tld"
