@@ -4,5 +4,27 @@
     "axios-rate-limit": "^1.3.0",
     "axios-retry": "^3.5.1",
     "yaml": "^2.3.1"
-  }
+  },
+  "name": "masto-backfill",
+  "description": "This tool fetches posts from Mastodon (or Mastodon-compatible) instances and uses the search endpoint to make your instance fetch them, making them searchable and fixing incomplete user pages.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamK2003/masto-backfill.git"
+  },
+  "keywords": [
+    "mastodon",
+    "fediverse"
+  ],
+  "author": "AdamK2003",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/AdamK2003/masto-backfill/issues"
+  },
+  "homepage": "https://github.com/AdamK2003/masto-backfill#readme"
 }
