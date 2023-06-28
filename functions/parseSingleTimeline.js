@@ -160,6 +160,28 @@ function parseSingleTimeline(timeline, instanceDomain) {
     }
   }
 
+  if(filterObject.maxId) {
+    output.params.push({
+      key: 'max_id',
+      value: filterObject.maxId
+    })
+  }
+
+  if(filterObject.minId) {
+    output.params.push({
+      key: 'min_id',
+      value: filterObject.minId
+    })
+  }
+
+  else if(filterObject.sinceId) {
+    output.params.push({
+      key: 'since_id',
+      value: filterObject.sinceId
+    })
+  }
+
+
 
 
   output.count = count;
