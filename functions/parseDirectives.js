@@ -47,7 +47,8 @@ const parseDirectives = (directives, users) => {
   }
   
   */
-
+  if(!directives) directives = []
+  if(!users) users = []
   for (let directive of directives) {
     for (let instance of directive.instances) {
       if (!output[instance]) {
