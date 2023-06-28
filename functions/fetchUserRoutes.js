@@ -39,7 +39,7 @@ const fetchUserRoutes = async (requests, eventEmitter) => {
         }
         paramsString = paramsString.replace('&', '?');
 
-        console.log(`${instance}${requestPath}${paramsString}`);
+        console.log(`Fetching user id: ${instance}${requestPath}${paramsString}`);
 
         let response;
 
@@ -48,7 +48,7 @@ const fetchUserRoutes = async (requests, eventEmitter) => {
         } catch(err) {
           // if 404, remove request
           if (err.response.status === 404) {
-            console.log(`404 on ${instance}${requestPath}${paramsString}`)
+            console.log(`User id: 404 on ${instance}${requestPath}${paramsString}`)
             delete requestsOutput[instance].requests[request];
             continue;
           }

@@ -68,7 +68,7 @@ for (let instance in requests) {
 let outputInstances = {};
 
 for (let instance of config.instances) {
-  console.log(`Adding output instance ${instance}`)
+  console.log(`Adding output instance ${instance.instance}`)
   outputInstances[instance] = {
     client: rateLimit(
       axios.create({
