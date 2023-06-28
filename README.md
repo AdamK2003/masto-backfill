@@ -6,7 +6,7 @@ This tool fetches posts from Mastodon (or Mastodon-compatible) instances and use
 
 - Clone the repository and run `npm i` to install the dependencies
 - Copy `config.template.yml` to `config.yml` and edit it
-- Run `node index.js`
+- Run `node index.js` or `npm run start`
 - Watch the magic happen
 
 ## How to configure?
