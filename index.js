@@ -110,8 +110,8 @@ events.on('fetchUserRoutesComplete', (requestsOutput) => {
   console.timeEnd('getPosts')
 })
 
-let fetchedPosts = []
-let fetchedUsers = []
+let fetchedPosts = {}
+let fetchedUsers = {}
 
 events.on('newPosts', (posts) => {
 
@@ -120,7 +120,9 @@ events.on('newPosts', (posts) => {
 
     for (let post of posts) {
 
-      if(fetchedPosts.includes(post)) {
+      if(!fetchedPosts[instance.instance]) fetchedPosts[instance.instance] = [];
+
+      if(fetchedPosts[instance.instance].includes(post)) {
         console.log(`Skipping ${post} on ${outputInstances[instance].instance} as it has already been fetched`)
         continue;
       }
@@ -141,7 +143,8 @@ events.on('newPosts', (posts) => {
       })
       // */
 
-      fetchedPosts.push(post);
+
+      fetchedPosts[instance.instance].push(post);
 
 
     }
@@ -157,8 +160,10 @@ events.on('newUsers', (users) => {
     console.log(`Fetching ${users.length} posts on ${outputInstances[instance].instance}`)
 
     for (let user of users) {
+      
+      if(!fetchedUsers[instance.instance]) fetchedUsers[instance.instance] = [];
 
-      if(fetchedUsers.includes(user)) {
+      if(fetchedUsers[instance.instance].includes(user)) {
         console.log(`Skipping ${user} on ${outputInstances[instance].instance} as it has already been fetched`)
         continue;
       }
@@ -179,7 +184,8 @@ events.on('newUsers', (users) => {
       })
       // */
 
-      fetchedUsers.push(user);
+
+      fetchedUsers[instance.instance].push(user);
 
 
     }
