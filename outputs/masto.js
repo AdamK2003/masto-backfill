@@ -63,8 +63,10 @@ const MastoOutput = new OutputInterface(
       try {
         await this.client.get('/api/v2/search' + `?${params.toString()}`)
         console.log(`Fetched ${query} on ${this.name}`);
+        return true;
       } catch (e) {
         console.log(`Error fetching ${query} on ${this.name}; error: ${e}`);
+        return false;
       }
 
   }
