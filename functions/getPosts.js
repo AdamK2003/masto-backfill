@@ -123,9 +123,15 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   // console.log(response.data[response.data.length - 1]);
 
   let posts = [];
+  let users = [];
 
   for (let post of response.data) {
     posts.push(post.url);
+    let user = post.account.acct;
+    if(!user.startsWith('@')) {
+      user = `@${user}`;
+    }
+    users.push(user);
   }
 
   if(posts.length === 0) {
@@ -144,6 +150,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   let lastId = response.data[response.data.length - 1].id;
 
   eventEmitter.emit('newPosts', posts);
+  eventEmitter.emit('newUsers', users);
 
 
   if(newCount <= 0) return;

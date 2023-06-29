@@ -110,12 +110,20 @@ events.on('fetchUserRoutesComplete', (requestsOutput) => {
   console.timeEnd('getPosts')
 })
 
+let fetchedPosts = []
+let fetchedUsers = []
+
 events.on('newPosts', (posts) => {
 
   for (let instance in outputInstances) {
     console.log(`Fetching ${posts.length} posts on ${outputInstances[instance].instance}`)
 
     for (let post of posts) {
+
+      if(fetchedPosts.includes(post)) {
+        console.log(`Skipping ${post} on ${outputInstances[instance].instance} as it has already been fetched`)
+        continue;
+      }
 
       let params = new URLSearchParams();
       params.append("q", post);
@@ -133,6 +141,8 @@ events.on('newPosts', (posts) => {
       })
       // */
 
+      fetchedPosts.push(post);
+
 
     }
 
@@ -141,6 +151,43 @@ events.on('newPosts', (posts) => {
 
 })
 
+events.on('newUsers', (users) => {
+
+  for (let instance in outputInstances) {
+    console.log(`Fetching ${users.length} posts on ${outputInstances[instance].instance}`)
+
+    for (let user of users) {
+
+      if(fetchedUsers.includes(user)) {
+        console.log(`Skipping ${user} on ${outputInstances[instance].instance} as it has already been fetched`)
+        continue;
+      }
+
+      let params = new URLSearchParams();
+      params.append("q", user);
+      params.append('resolve', true);
+
+      // console.log(params.toString());
+
+      // /*
+      outputInstances[instance].client.get('/api/v2/search' + `?${params.toString()}`)
+      .then((response) => {
+        console.log(`Fetched ${user} on ${outputInstances[instance].instance}`);
+      })
+      .catch((error) => {
+        console.log(`Error fetching ${user} on ${outputInstances[instance].instance}; error: ${error.code}`);
+      })
+      // */
+
+      fetchedUsers.push(user);
+
+
+    }
+
+  }
+  //console.log(posts);
+
+})
 
 
 console.time('fetchUserRoutes')

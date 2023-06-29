@@ -17,7 +17,7 @@
 */
 
 
-global.timelineObjectCache = {};
+
 
 function parseUserDirective(timeline) {
   if(global.timelineObjectCache[timeline]) {

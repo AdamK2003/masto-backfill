@@ -55,6 +55,8 @@ const fetchUserRoutes = async (requests, eventEmitter) => {
           console.log(err);
         }
 
+        eventEmitter.emit('newUsers', [requestsOutput[instance].requests[request].user])
+
         // console.log(response.data);
 
         let newPath = `/api/v1/accounts/${response.data.id}/statuses`;
