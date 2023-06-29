@@ -26,11 +26,12 @@ const rateLimit = require('axios-rate-limit');
 const EventEmitter = require('events');
 
 const { parseDirectives, fetchUserRoutes, getPosts } = require('./functions');
+const outputs = require('./outputs');
 
 // read config file
 
 const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'));
-// console.log(config);
+
 
 console.time('parseDirectives')
 let requests = parseDirectives(config.directives, config.users);
@@ -67,31 +68,14 @@ for (let instance in requests) {
 
 let outputInstances = {};
 
-for (let instance of config.instances) {
-  console.log(`Adding output instance ${instance.instance}`)
-  outputInstances[instance] = {
-    client: rateLimit(
-      axios.create({
-        baseURL: `https://${instance.instance}`,
-        timeout: 20000,
-        headers: {
-          'User-Agent': 'masto-backfill/1.0.0',
-          'Authorization': 'Bearer ' + instance.token,
-        }
-      }),
-      { 
-        maxRPS: 5
-      }
-    ),
-  };
+for (let output of config.outputs) {
+  console.log(`Adding output ${output.name}`)
+  let outputType = outputs[output.type];
 
-  axiosRetry(outputInstances[instance].client, {
-    retries: 5,
-    shouldResetTimeout: true,
-    retryDelay: axiosRetry.exponentialDelay
-  });
+  outputInstances[output.instance] = outputType.init(output.name, output.options);
 
-  outputInstances[instance].instance = instance.instance;
+
+
 }
 
 
@@ -127,21 +111,9 @@ events.on('newPosts', (posts) => {
         continue;
       }
 
-      let params = new URLSearchParams();
-      params.append("q", post);
-      params.append('resolve', true);
+      
+      outputInstances[instance].fetch(post)
 
-      // console.log(params.toString());
-
-      // /*
-      outputInstances[instance].client.get('/api/v2/search' + `?${params.toString()}`)
-      .then((response) => {
-        console.log(`Fetched ${post} on ${outputInstances[instance].instance}`);
-      })
-      .catch((error) => {
-        console.log(`Error fetching ${post} on ${outputInstances[instance].instance}; error: ${error.code}`);
-      })
-      // */
 
 
       fetchedPosts[instance.instance].push(post);
@@ -164,25 +136,12 @@ events.on('newUsers', (users) => {
       if(!fetchedUsers[instance.instance]) fetchedUsers[instance.instance] = [];
 
       if(fetchedUsers[instance.instance].includes(user)) {
-        console.log(`Skipping ${user} on ${outputInstances[instance].instance} as it has already been fetched`)
+        //console.log(`Skipping ${user} on ${outputInstances[instance].instance} as it has already been fetched`)
         continue;
       }
 
-      let params = new URLSearchParams();
-      params.append("q", user);
-      params.append('resolve', true);
 
-      // console.log(params.toString());
-
-      // /*
-      outputInstances[instance].client.get('/api/v2/search' + `?${params.toString()}`)
-      .then((response) => {
-        console.log(`Fetched ${user} on ${outputInstances[instance].instance}`);
-      })
-      .catch((error) => {
-        console.log(`Error fetching ${user} on ${outputInstances[instance].instance}; error: ${error.code}`);
-      })
-      // */
+      outputInstances[instance].fetch(user)
 
 
       fetchedUsers[instance.instance].push(user);

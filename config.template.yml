@@ -1,6 +1,8 @@
-instances:
-  - instance: instance.tld
-    token: "yourTokenHere"
+outputs:
+  - type: masto
+    name: instance.tld
+    options:
+      token: "yourTokenHere"
 directives:
   - instances:
       - instance1.tld
