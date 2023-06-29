@@ -4,7 +4,7 @@ This tool fetches posts from Mastodon (or Mastodon-compatible) instances and use
 
 ## Why?
 
-I created my instance about a week ago, and I wanted to see old posts on some users' pages. I found some tools (like [FediFetcher](https://github.com/nanos/FediFetcher) and [GetMoarFediverse](https://github.com/g3rv4/GetMoarFediverse)), but none of them worked for me, so I decided to make my own.
+I created my instance about a week ago, and I wanted to see old posts on some users' pages. I found some tools (like [FediFetcher](https://github.com/nanos/FediFetcher) and [GetMoarFediverse](https://github.com/g3rv4/GetMoarFediverse)), but none of them worked for my use case, so I decided to make my own.
 
 ## How does it work?
 
