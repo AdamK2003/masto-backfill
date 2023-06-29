@@ -2,6 +2,18 @@
 
 This tool fetches posts from Mastodon (or Mastodon-compatible) instances and uses the search endpoint to make your instance fetch them, making them searchable and fixing incomplete user pages.
 
+## Why?
+
+I created my instance about a week ago, and I wanted to see old posts on some users' pages. I found some tools (like [FediFetcher](https://github.com/nanos/FediFetcher) and [GetMoarFediverse](https://github.com/g3rv4/GetMoarFediverse)), but none of them worked for me, so I decided to make my own.
+
+## How does it work?
+
+The tool fetches the specified timelines from the specified instances, extracts the post URLs and user tags and then uses the search endpoint on the target instance(s) with `resolve=true` to force the instance(s) to fetch the posts. Everything is done asynchronously and in parallel to avoid wasting time with ratelimits on separate instances.
+
+## Warning
+
+This WILL spam the output instances with requests and probably will take some time to complete if you're fetching a lot of posts. It pegged all the CPU cores on the Oracle VM I'm running [my own Pleroma instance](https://plrm.adamski2003.lol) on when I was testing the tool with a 3rps ratelimit, so keep that in mind. Please only run it on your own instance or with the permission of the instance admins. I'm not responsible for any damage caused by this tool.
+
 ## How to use?
 
 - Clone the repository and run `npm i` to install the dependencies
@@ -11,7 +23,21 @@ This tool fetches posts from Mastodon (or Mastodon-compatible) instances and use
 
 ## How to configure?
 
-The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing instance(s) to fetch posts on, together with tokens, directives for groups of instances and timelines and directives for users. Public or tag timelines are specified in the `directives` array with instance domains, while users are specified separately in the `users` array. The syntax for directives is `timeline/user:amount:filter1:filter2:...`, where `timeline/user` is the `$public` timeline or a `tag`, or in the case of a user, a `@username@instance.tld`. `amount` is optional and is the amount of posts to fetch, can be omitted even if you're using filters (`timeline:filter1:filter2...` will work). Defaults to 40. The filters are also optional; they're different for each timeline type and are listed in the next section. The filters are applied in the order they're written in the config file. In case of conflicting filters, the last one will be used unless specified otherwise. You can have as many directives as you want; just keep in mind that fetching the posts on your target instance(s) might take some time. If fetching a timeline fails, it will be skipped and a warning will be logged.
+The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing instance(s) to fetch the posts on (or other output types), together with options, directives for groups of instances and timelines and directives for users. Public or tag timelines are specified in the `directives` array with instance domains, while users are specified separately in the `users` array. The syntax for directives is `timeline/user:amount:filter1:filter2:...`, where `timeline/user` is the `$public` timeline or a `tag`, or in the case of a user, a `@username@instance.tld`. `amount` is optional and is the amount of posts to fetch, can be omitted even if you're using filters (`timeline:filter1:filter2...` will work). Defaults to 40. The filters are also optional; they're different for each timeline type and are listed in the next section. The filters are applied in the order they're written in the config file. In case of conflicting filters, the last one will be used unless specified otherwise. You can have as many directives as you want; just keep in mind that fetching the posts on your target instance(s) might take some time. If fetching a timeline fails, it will be skipped and a warning will be logged.
+
+## Outputs
+
+Here's a list of outputs you can use (it's currently just Mastodon, but I'm planning on adding more):
+
+`type: masto` - Mastodon-compatible instances (default) - example config:
+
+```yaml
+outputs:
+  - type: masto
+    name: mastodon.social
+    options:
+      token: "your token here"
+```
 
 ## Filters
 
