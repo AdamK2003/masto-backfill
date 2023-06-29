@@ -29,7 +29,7 @@ The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing instance(s)
 
 Here's a list of outputs you can use (it's currently just Mastodon, but I'm planning on adding more):
 
-`type: masto` - Mastodon-compatible instances (default) - example config:
+`type: masto` - Mastodon-compatible instances - example config:
 
 ```yaml
 outputs:
