@@ -39,7 +39,7 @@ const TemplateOutput = new OutputInterface(
     return this;
   },
   async function (query, options) {
-    // will be called for each post/user, should return true/false for whether the write was successful
+    // will be called for each post/user, should return true/false for whether the write was successful (only use false for retryable/unexpected errors, like network errors)
 
     if(this.fetched.has(query)) {
       // maybe do logging
