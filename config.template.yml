@@ -1,8 +1,16 @@
+global:
+  logLevel: info # pino log level
+  contact: "https://plrm.adamski2003.lol/adam" # contact URL to be added to user-agent
 outputs:
   - type: masto
     name: instance.tld
     options:
-      token: "yourTokenHere"
+      token: "yourTokeHere"
+      # logLevel: debug # log level override, works on any output
+  - type: log
+    name: logOutput
+    options:
+      logLevel: debug
 directives:
   - instances:
       - instance1.tld

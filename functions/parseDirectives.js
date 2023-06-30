@@ -22,8 +22,10 @@ const parseUserDirective = require('./parseUserDirective')
 
 
 
-const parseDirectives = (directives, users) => {
+const parseDirectives = (directives, users, loggerInstance) => {
 
+
+  let logger = loggerInstance.child({function: 'parseDirectives'});
 
   let output = {};
 
@@ -68,9 +70,9 @@ const parseDirectives = (directives, users) => {
           count: undefined
         }
 
-        let timelineOutput = parseSingleTimeline(timeline)
+        let timelineOutput = parseSingleTimeline(timeline, logger)
 
-        // console.log(timelineOutput);
+        // logger.info(timelineOutput);
 
         request.path = timelineOutput.apiPath;
         request.method = timelineOutput.apiMethod;
@@ -109,8 +111,8 @@ const parseDirectives = (directives, users) => {
       user: undefined
     }
 
-    let userOutput = parseUserDirective(user)
-    // console.log(userOutput)
+    let userOutput = parseUserDirective(user, logger)
+    // logger.info(userOutput)
 
     request.path = userOutput.apiPath;
     request.method = userOutput.apiMethod;
@@ -127,7 +129,7 @@ const parseDirectives = (directives, users) => {
       }
     }
 
-    // console.log(request);
+    // logger.info(request);
 
     // if an entry for this instance and path exists, update the params and count
 
@@ -143,7 +145,7 @@ const parseDirectives = (directives, users) => {
 
   }
 
-  // console.log(JSON.stringify(output, null, 2))
+  // logger.info(JSON.stringify(output, null, 2))
   return output;
 
 }

@@ -23,20 +23,26 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const rateLimit = require('axios-rate-limit');
 
+// This output fetches posts on a Mastodon(-compatible) instance directly via the API
+
 const MastoOutput = new OutputInterface(
   'masto',
-  function (instance, options) {
+  function (name, logger, options, globalOptions) {
+
+    this.name = name;
+    this.logger = logger.child({ output: 'masto', instance: name });
+    if(options?.logLevel) this.logger.level = options.logLevel;
+
     if(!options.token) {
-      throw new Error('No token provided for Mastodon instance ' + instance);
+      throw new Error('No token provided for Mastodon instance ' + name);
     }
-    this.name = instance;
-    this.instance = instance;
+
     let client = rateLimit(
       axios.create({
-        baseURL: `https://${instance}`,
+        baseURL: `https://${name}`,
         timeout: options?.timeout || 15000,
         headers: {
-          'User-Agent': options?.userAgent || 'masto-backfill/1.0.0',
+          'User-Agent': options?.userAgent || 'masto-backfill/1.0.0' + (globalOptions?.contact ? `; +${globalOptions.contact}` : ''),
           'Authorization': 'Bearer ' + options.token,
         }
       }),
@@ -52,24 +58,39 @@ const MastoOutput = new OutputInterface(
     })
 
     this.client = client;
+
+    this.fetched = new Set();
+    this.errors = new Set();
+
     return this;
   },
   async function (query, options) {
 
+    if(this.fetched.has(query)) {
+      this.logger.debug(`Already fetched ${query} on ${this.name}`);
+      return true;
+    }
+
     let params = new URLSearchParams();
-      params.append("q", query);
-      params.append('resolve', true);
+    params.append("q", query);
+    params.append('resolve', true);
 
-      try {
-        await this.client.get('/api/v2/search' + `?${params.toString()}`)
-        console.log(`Fetched ${query} on ${this.name}`);
-        return true;
-      } catch (e) {
-        console.log(`Error fetching ${query} on ${this.name}; error: ${e}`);
-        return false;
-      }
-
+    try {
+      await this.client.get('/api/v2/search' + `?${params.toString()}`)
+      this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
+      this.fetched.add(query);
+      return true;
+    } catch (e) {
+      this.logger.info(`Error fetching ${query} on ${this.name}; error: ${e}`);
+      this.errors.add(query);
+      return false;
+    }
+  },
+  function () {
+    // No cleanup needed
+    return true;
   }
+  
 );
 
 module.exports = MastoOutput;

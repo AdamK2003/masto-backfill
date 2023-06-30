@@ -19,7 +19,9 @@
 
 // fetch user IDs and generate requests
 
-const fetchUserRoutes = async (requests, eventEmitter) => {
+const fetchUserRoutes = async (requests, eventEmitter, loggerInstance) => {
+
+  let logger = loggerInstance.child({function: 'fetchUserRoutes'});
 
   let requestsOutput = requests;
 
@@ -39,7 +41,7 @@ const fetchUserRoutes = async (requests, eventEmitter) => {
         }
         paramsString = paramsString.replace('&', '?');
 
-        console.log(`Fetching user id: ${instance}${requestPath}${paramsString}`);
+        logger.info(`Fetching user id: ${instance}${requestPath}${paramsString}`);
 
         let response;
 
@@ -48,16 +50,16 @@ const fetchUserRoutes = async (requests, eventEmitter) => {
         } catch(err) {
           // if 404, remove request
           if (err.response.status === 404) {
-            console.log(`User id: 404 on ${instance}${requestPath}${paramsString}`)
+            logger.warn(`User id: 404 on ${instance}${requestPath}${paramsString}`)
             delete requestsOutput[instance].requests[request];
             continue;
           }
-          console.log(err);
+          logger.error(err);
         }
 
         eventEmitter.emit('newUsers', [requestsOutput[instance].requests[request].user])
 
-        // console.log(response.data);
+        // logger.info(response.data);
 
         let newPath = `/api/v1/accounts/${response.data.id}/statuses`;
         let newMethod = 'GET';
@@ -75,7 +77,7 @@ const fetchUserRoutes = async (requests, eventEmitter) => {
 
   }
 
-  // console.log(requestsOutput);
+  // logger.info(requestsOutput);
 
   eventEmitter.emit('fetchUserRoutesComplete', requestsOutput);
   return requestsOutput;

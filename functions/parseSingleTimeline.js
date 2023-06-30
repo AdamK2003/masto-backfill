@@ -19,7 +19,10 @@
 
 global.timelineObjectCache = {};
 
-function parseSingleTimeline(timeline, instanceDomain) {
+function parseSingleTimeline(timeline, loggerInstance) {
+
+  let logger = loggerInstance.child({function: 'parseSingleTimeline'});
+
   if(global.timelineObjectCache[timeline]) {
     return global.timelineObjectCache[timeline];
   }
@@ -38,7 +41,7 @@ function parseSingleTimeline(timeline, instanceDomain) {
   let count = !isNaN(+segments[1]) ? +segments[1] : 40;
   let filters = segments.slice(1 + !isNaN(+segments[1]));
 
-  // console.log(timelineId, count, filters);
+  // logger.info(timelineId, count, filters);
 
   
 

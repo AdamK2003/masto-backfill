@@ -23,22 +23,34 @@ const fs = require('fs');
 const axiosRetry = require('axios-retry');
 const rateLimit = require('axios-rate-limit');
 
+const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'));
+
+logger = require('pino')({
+  level: config.global?.logLevel || 'info',
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      ignore: 'pid,hostname'
+    }
+  }
+})
+
 const EventEmitter = require('events');
 
 const { parseDirectives, fetchUserRoutes, getPosts } = require('./functions');
-const outputs = require('./outputs');
+const outputGenerators = require('./outputs');
 
 // read config file
 
-const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'));
 
 
-console.time('parseDirectives')
-let requests = parseDirectives(config.directives, config.users);
-// TODO add filtering by date, IDs are snowflakes so we can use the timestamp
-console.timeEnd('parseDirectives')
+// console.time('parseDirectives')
+let requests = parseDirectives(config.directives, config.users, logger);
+// TODO add filtering by date, ~~IDs are snowflakes so we can use the timestamp~~ nvm, the IDs are not guaranteed to be snowflakes
+// console.timeEnd('parseDirectives')
 
-// console.log(JSON.stringify(requests, null, 2));
+// logger.info(JSON.stringify(requests, null, 2));
 
 // generate an axios client for each instance
 // use axios-retry and axios-rate-limit
@@ -49,7 +61,7 @@ for (let instance in requests) {
       baseURL: `https://${instance}`,
       timeout: 10000,
       headers: {
-        'User-Agent': 'masto-backfill/1.0.0'
+        'User-Agent': 'masto-backfill/1.0.0' + (config.global?.contact ? `; +${config.global.contact}` : '')
       }
     }),
     { 
@@ -66,15 +78,13 @@ for (let instance in requests) {
   });
 }
 
-let outputInstances = {};
+let outputs = {};
 
 for (let output of config.outputs) {
-  console.log(`Adding output ${output.name}`)
-  let outputType = outputs[output.type];
+  logger.info(`Adding output ${output.name}`)
+  let outputType = outputGenerators[output.type];
 
-  outputInstances[output.instance] = outputType.init(output.name, output.options);
-
-
+  outputs[`${output.type}-${output.name}`] = outputType.init(output.name, logger, output.options, config.global);
 
 }
 
@@ -83,11 +93,10 @@ for (let output of config.outputs) {
 const events = new EventEmitter();
 
 
+fetchUserRoutes(requests, events, logger);
 
 
 events.on('fetchUserRoutesComplete', (requestsOutput) => {
-  console.timeEnd('fetchUserRoutes')
-  // console.log('fetchUserRoutesComplete');
   requests = requestsOutput;
   console.time('getPosts')
   getPosts(requests, events);
@@ -99,61 +108,52 @@ let fetchedUsers = {}
 
 events.on('newPosts', (posts) => {
 
-  for (let instance in outputInstances) {
-    console.log(`Fetching ${posts.length} posts on ${outputInstances[instance].instance}`)
+  for (let instance in outputs) {
+    logger.debug(`Fetching ${posts.length} posts on ${outputs[instance].name}`)
 
     for (let post of posts) {
-
-      if(!fetchedPosts[instance.instance]) fetchedPosts[instance.instance] = [];
-
-      if(fetchedPosts[instance.instance].includes(post)) {
-        console.log(`Skipping ${post} on ${outputInstances[instance].instance} as it has already been fetched`)
-        continue;
-      }
-
       
-      outputInstances[instance].fetch(post)
-
-
-
-      fetchedPosts[instance.instance].push(post);
-
+      outputs[instance].fetch(post)
 
     }
 
   }
-  //console.log(posts);
+  //logger.info(posts);
 
 })
 
 events.on('newUsers', (users) => {
 
-  for (let instance in outputInstances) {
-    console.log(`Fetching ${users.length} posts on ${outputInstances[instance].instance}`)
+  for (let output in outputs) {
+    logger.info(`Fetching ${users.length} posts on ${outputs[output].name}`)
 
     for (let user of users) {
-      
-      if(!fetchedUsers[instance.instance]) fetchedUsers[instance.instance] = [];
 
-      if(fetchedUsers[instance.instance].includes(user)) {
-        //console.log(`Skipping ${user} on ${outputInstances[instance].instance} as it has already been fetched`)
-        continue;
-      }
-
-
-      outputInstances[instance].fetch(user)
-
-
-      fetchedUsers[instance.instance].push(user);
-
+      outputs[output].fetch(user)
 
     }
 
   }
-  //console.log(posts);
+  //logger.info(posts);
 
 })
 
 
-console.time('fetchUserRoutes')
-fetchUserRoutes(requests, events);
+
+
+
+let closed = false;
+
+process.on('beforeExit', async () => {
+
+  if(closed) return;
+  logger.info('Closing outputs')
+
+  for (let output in outputs) {
+    outputs[output].close();
+  }
+
+  logger.info('Outputs closed')
+  closed = true
+
+})

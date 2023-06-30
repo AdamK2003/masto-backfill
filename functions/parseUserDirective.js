@@ -19,7 +19,10 @@
 
 
 
-function parseUserDirective(timeline) {
+function parseUserDirective(timeline, loggerInstance) {
+
+  let logger = loggerInstance.child({function: 'parseUserDirective'});
+
   if(global.timelineObjectCache[timeline]) {
     return global.timelineObjectCache[timeline];
   }
@@ -41,7 +44,7 @@ function parseUserDirective(timeline) {
   let filters = segments.slice(1 + !isNaN(+segments[1]));
 
   output.user = userTag;
-  // console.log(userTag);
+  // logger.info(userTag);
 
   
   
@@ -50,7 +53,7 @@ function parseUserDirective(timeline) {
 
   output.instanceDomain = instanceDomain;
 
-  // console.log(userName, instanceDomain);
+  // logger.info(userName, instanceDomain);
 
   output.apiPath = `/api/v1/accounts/lookup`;
   output.apiMethod = 'GET';
@@ -130,7 +133,7 @@ function parseUserDirective(timeline) {
 
   output.count = count;
 
-  // console.log(output);
+  // logger.info(output);
 
   return output;
 
