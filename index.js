@@ -45,12 +45,9 @@ const outputGenerators = require('./outputs');
 
 
 
-// console.time('parseDirectives')
 let requests = parseDirectives(config.directives, config.users, logger);
 // TODO add filtering by date, ~~IDs are snowflakes so we can use the timestamp~~ nvm, the IDs are not guaranteed to be snowflakes
-// console.timeEnd('parseDirectives')
 
-// logger.info(JSON.stringify(requests, null, 2));
 
 // generate an axios client for each instance
 // use axios-retry and axios-rate-limit
@@ -81,6 +78,12 @@ for (let instance in requests) {
 let outputs = {};
 
 for (let output of config.outputs) {
+
+  if(output.enabled === false) {
+    logger.info(`Skipping disabled output ${output.name}`)
+    continue;
+  }
+
   logger.info(`Adding output ${output.name}`)
   let outputType = outputGenerators[output.type];
 
@@ -98,22 +101,21 @@ fetchUserRoutes(requests, events, logger);
 
 events.on('fetchUserRoutesComplete', (requestsOutput) => {
   requests = requestsOutput;
-  console.time('getPosts')
-  getPosts(requests, events);
-  console.timeEnd('getPosts')
+  
+  getPosts(requests, events, logger);
+  
 })
 
-let fetchedPosts = {}
-let fetchedUsers = {}
 
-events.on('newPosts', (posts) => {
 
-  for (let instance in outputs) {
-    logger.debug(`Fetching ${posts.length} posts on ${outputs[instance].name}`)
+events.on('newFetchables', (posts) => {
+
+  for (let output in outputs) {
+    logger.debug(`Fetching ${posts.length} objects on ${outputs[output].name}`)
 
     for (let post of posts) {
       
-      outputs[instance].fetch(post)
+      outputs[output].fetch(post)
 
     }
 
@@ -122,21 +124,6 @@ events.on('newPosts', (posts) => {
 
 })
 
-events.on('newUsers', (users) => {
-
-  for (let output in outputs) {
-    logger.info(`Fetching ${users.length} posts on ${outputs[output].name}`)
-
-    for (let user of users) {
-
-      outputs[output].fetch(user)
-
-    }
-
-  }
-  //logger.info(posts);
-
-})
 
 
 
@@ -156,7 +143,7 @@ process.on('beforeExit', async () => {
     let success = outputs[output].close();
     if(!success) {
       failed = true;
-      logger.error(`Failed to close output ${outputs[output].name}`)
+      logger.warn(`Failed to close output ${outputs[output].name}`)
     } 
   }
 
@@ -164,7 +151,7 @@ process.on('beforeExit', async () => {
     logger.warn(`Failed to close some outputs, ${retries} retries remaining`)
     retries--;
     if(retries > 0) {
-      logger.info('Retrying')
+      logger.warn('Retrying')
       process.emit('beforeExit')
     } else {
       logger.error('Failed to close outputs, exiting')

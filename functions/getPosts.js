@@ -18,7 +18,9 @@
 
 
 
-const getPosts = async (requests, eventEmitter) => {
+const getPosts = async (requests, eventEmitter, loggerInstance) => {
+
+  let logger = loggerInstance.child({function: 'getPosts'});
 
   let posts = [];
 
@@ -26,9 +28,9 @@ const getPosts = async (requests, eventEmitter) => {
 
     for (let request in requests[instance].requests) {
 
-      // console.log(requests[instance].requests[request])
+      // logger.info(requests[instance].requests[request])
 
-      getTimelinePosts(instance, requests[instance].requests[request], requests[instance].client, eventEmitter);
+      getTimelinePosts(instance, requests[instance].requests[request], requests[instance].client, eventEmitter, logger);
 
       // add posts to posts array
 
@@ -48,7 +50,9 @@ const getPosts = async (requests, eventEmitter) => {
 
 
 
-const getTimelinePosts = async (instance, request, client, eventEmitter) => {
+const getTimelinePosts = async (instance, request, client, eventEmitter, loggerInstance) => {
+
+  let logger = loggerInstance.child({function: 'getTimelinePosts'});
 
 
   let path = request.path;
@@ -58,7 +62,7 @@ const getTimelinePosts = async (instance, request, client, eventEmitter) => {
 
   let params = request.params;
 
-  // console.log(params);
+  // logger.info(params);
 
   const reservedKeys = [
     'max_id'
@@ -76,8 +80,8 @@ const getTimelinePosts = async (instance, request, client, eventEmitter) => {
 
   
 
-  // console.log(preservedParams);
-  // console.log(otherParams);
+  // logger.info(preservedParams);
+  // logger.info(otherParams);
 
   // max id will be used to paginate
 
@@ -88,17 +92,24 @@ const getTimelinePosts = async (instance, request, client, eventEmitter) => {
   }
 
   
-  getNextPage(instance, path, preservedParamsStr, client, maxId, count, eventEmitter);
+  getNextPage(instance, path, preservedParamsStr, client, maxId, count, eventEmitter, logger);
 
-  // console.log(maxId);
+  // logger.info(maxId);
 
 
 
 }
 
 
-const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter) => {
+const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance) => {
 
+  let logger;
+
+  if(!loggerInstance.function == 'getNextPage') {
+    logger = loggerInstance.child({function: 'getNextPage'});
+  } else {
+    logger = loggerInstance;
+  }
 
   let url = `${path}`;
   if(params) {
@@ -109,18 +120,18 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   }
   url = url.replace('&', '?');
 
-  console.log(`${count} posts remaining on ${instance}${path}`);
+  logger.info(`${count} posts remaining on ${instance}${path}`);
 
   let response;
   
   try {
     response = await client.get(url);
   } catch (e) {
-    console.log(`Could not get ${url} for ${instance}`);
+    logger.warn(`Could not get ${url} for ${instance}`);
     return null;
   }
 
-  // console.log(response.data[response.data.length - 1]);
+  // logger.info(response.data[response.data.length - 1]);
 
   let posts = [];
   let users = [];
@@ -131,15 +142,17 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
     if(!user.startsWith('@')) {
       user = `@${user}`;
     }
-    users.push(user);
+    if((user.split('@').length >= 3)) {
+      users.push(user);
+    }
   }
 
   if(posts.length === 0) {
-    console.log(`No more posts found on ${instance}${path}`);
+    logger.info(`No more posts found on ${instance}${path}`);
     return;
   }
 
-  // console.log(posts);
+  // logger.info(posts);
 
   if(posts.length > count) {
     posts = posts.slice(0, count);
@@ -149,13 +162,15 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
 
   let lastId = response.data[response.data.length - 1].id;
 
-  eventEmitter.emit('newPosts', posts);
-  eventEmitter.emit('newUsers', users);
+  let fetchables = posts.concat(users);
+
+  eventEmitter.emit('newFetchables', fetchables);
+  
 
 
   if(newCount <= 0) return;
 
-  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter);
+  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger);
   
   
 }

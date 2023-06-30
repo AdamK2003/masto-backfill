@@ -25,11 +25,11 @@ This WILL spam the output instances with requests and probably will take some ti
 
 ## How to configure?
 
-The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing instance(s) to fetch the posts on (or other output types), together with options, directives for groups of instances and timelines and directives for users. Public or tag timelines are specified in the `directives` array with instance domains, while users are specified separately in the `users` array. The syntax for directives is `timeline/user:amount:filter1:filter2:...`, where `timeline/user` is the `$public` timeline or a `tag`, or in the case of a user, a `@username@instance.tld`. `amount` is optional and is the amount of posts to fetch, can be omitted even if you're using filters (`timeline:filter1:filter2...` will work). Defaults to 40. The filters are also optional; they're different for each timeline type and are listed in the next section. The filters are applied in the order they're written in the config file. In case of conflicting filters, the last one will be used unless specified otherwise. You can have as many directives as you want; just keep in mind that fetching the posts on your target instance(s) might take some time. If fetching a timeline fails, it will be skipped and a warning will be logged.
+The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing output definitions, directives for groups of instances and timelines and directives for users. Public or tag timelines are specified in the `directives` array with instance domains, while users are specified separately in the `users` array. The syntax for directives is `timeline/user:amount:filter1:filter2:...`, where `timeline/user` is the `$public` timeline or a `tag`, or in the case of a user, a `@username@instance.tld`. `amount` is optional and is the amount of posts to fetch, can be omitted even if you're using filters (`timeline:filter1:filter2...` will work). Defaults to 40. The filters are also optional; they're different for each timeline type and are listed in the next section. The filters are applied in the order they're written in the config file. In case of conflicting filters, the last one will be used unless specified otherwise. You can have as many directives as you want; just keep in mind that fetching the posts on your target output(s) might take some time. If fetching a timeline fails, it will be skipped and a warning will be logged.
 
 ## Outputs
 
-Here's a list of outputs you can use (it's currently just Mastodon, but I'm planning on adding more):
+Here's a list of outputs you can use:
 
 `type: masto` - Mastodon-compatible instances - example config:
 
@@ -39,6 +39,26 @@ outputs:
     name: mastodon.social
     options:
       token: "your token here"
+```
+
+`type: log` - log to the console - example config:
+
+```yaml
+outputs:
+  - type: log
+    name: logOutput # required, but can be anything, will be used to identify the output in the logs
+    options:
+      logLevel: info # this actually works on all outputs, but it's especially useful for the log output
+```
+
+`type: json` - write to a JSON file - example config:
+
+```yaml
+outputs:
+  - type: json
+    name: jsonOutput # required, but can be anything, will be used to identify the output in the logs
+    options:
+      file: ./output.json # required, path to the JSON file
 ```
 
 ## Filters

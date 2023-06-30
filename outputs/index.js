@@ -22,4 +22,5 @@
 module.exports = {
   'masto': require('./masto'),
   'log': require('./log'),
+  'json': require('./json'),
 }

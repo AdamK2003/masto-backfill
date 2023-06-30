@@ -1,17 +1,23 @@
 global:
   logLevel: info # pino log level
-  contact: "https://your.instance.tld/you" # contact URL to be added to user-agent
+  contact: "https://your.instance.tld/you" # optional (but recommended), contact URL to be added to user-agent
+  closeRetries: 3 # optional, the amount of times the program will retry if closing one or more outputs fails
 outputs:
-  - type: masto
-    name: your.instance.tld
+  - type: masto # mastodon (or MastoAPI compatible) instance
+    enabled: true # optional, works for any output, output will be skipped if false, true if omitted; alternative to commenting out entries
+    name: your.instance.tld # required, instance domain (without scheme)
     options:
-      token: "yourTokeHere"
-      # logLevel: info # log level override, works on any output
-  # - type: log
-  #   name: logOutput
-  #   options:
-  #     logLevel: debug
-directives:
+      token: "yourTokenHere" # auth token, check readme for instructions on obtaining one
+  - type: log # dummy log output, useful for debugging
+    enabled: false
+    name: logOutput # any name, will be used to identify the output in logs
+    options:
+  logLevel: debug # log level override, works on any output, but especially useful on this one
+  - type: json # json output, will output an object with arrays of posts and users
+    name: jsonOutput # any name, will be used to identify the output in logs
+    options:
+      file: "./output.json" # output filename
+directives: # those are described in more detail in the readme
   - instances:
       - instance1.tld
       - instance2.tld

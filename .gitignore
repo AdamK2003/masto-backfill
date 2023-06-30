@@ -1,4 +1,5 @@
 /config.yml
+/*.json
 
 # dependencies
 node_modules
