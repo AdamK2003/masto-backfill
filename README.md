@@ -37,10 +37,21 @@ Here's a list of outputs you can use:
 outputs:
   - type: masto
     enabled: true # optional, defaults to true, works on all outputs, can be used to disable an output without removing it from the config/commenting it out
-    name: mastodon.social # required, instance domain (without scheme)
+    name: your.instance.tld # required, instance domain (without scheme)
     options:
       token: "your token here" # required, token for the instance (`resolve` on the search endpoint doesn't work without the token)
       maxRPS: 3 # optional, change depending on what your instance can handle, defaults to 3
+```
+
+`type: fakerelay` - [FakeRelay](https://github.com/g3rv4/FakeRelay/) instance, highly recommended over the `masto` output if you have the means to run it - example config:
+
+```yaml
+- type: fakerelay
+    name: "fakerelay!your.instance.tld" # can be anything, the domain is in options because some people might want to use multiple tokens on the same relay
+    options:
+      instance: fakerelay.domain.tld # required, your FakeRelay domain
+      token: "yourTokenHere" # required, your FakeRelay API key for the desired instance
+      maxRPS: 5 # default for FakeRelay is 5, you can probably go higher than with a `masto` output on the same server
 ```
 
 `type: log` - log to the console - example config:
