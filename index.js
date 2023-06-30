@@ -62,9 +62,7 @@ for (let instance in requests) {
       }
     }),
     { 
-      maxRequests: 2,
-      perMilliseconds: 1000,
-      maxRPS: 1
+      maxRPS: config.global.inputMaxRPS || 1
     }
   );
 

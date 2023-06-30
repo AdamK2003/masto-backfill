@@ -36,9 +36,11 @@ Here's a list of outputs you can use:
 ```yaml
 outputs:
   - type: masto
-    name: mastodon.social
+    enabled: true # optional, defaults to true, works on all outputs, can be used to disable an output without removing it from the config/commenting it out
+    name: mastodon.social # required, instance domain (without scheme)
     options:
-      token: "your token here"
+      token: "your token here" # required, token for the instance (`resolve` on the search endpoint doesn't work without the token)
+      maxRPS: 3 # optional, change depending on what your instance can handle, defaults to 3
 ```
 
 `type: log` - log to the console - example config:
