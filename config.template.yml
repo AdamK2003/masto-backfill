@@ -10,6 +10,8 @@ outputs:
     options:
       token: "yourTokenHere" # auth token, check readme for instructions on obtaining one
       maxRPS: 3 # optional, change depending on how much your instance can handle, defaults to 3rps
+      posts: true # optional, defaults to true, whether to fetch posts, setting to false can be useful if you're also using fakerelay (which only supports fetching posts)
+      users: true # optional, defaults to true, whether to fetch users
   - type: log # dummy log output, useful for debugging
     enabled: false
     name: logOutput # any name, will be used to identify the output in logs
