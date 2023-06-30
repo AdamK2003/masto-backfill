@@ -59,6 +59,9 @@ const MastoOutput = new OutputInterface(
 
     this.client = client;
 
+    this.postsEnabled = options?.posts == undefined ? true : options?.posts;
+    this.usersEnabled = options?.users == undefined ? true : options?.users;
+
     this.fetched = new Set();
     this.errors = new Set();
     this.fetchedCount = 0;
@@ -72,6 +75,20 @@ const MastoOutput = new OutputInterface(
       this.logger.debug(`Already fetched ${query} on ${this.name}`);
       return true;
     }
+
+    if(query.startsWith('@')) {
+      if(!this.usersEnabled) {
+        this.logger.debug(`Users disabled on ${this.name}, not fetching ${query}`);
+        return true;
+      }
+    } else {
+      if(!this.postsEnabled) {
+        this.logger.debug(`Posts disabled on ${this.name}, not fetching ${query}`);
+        return true;
+      }
+    }
+
+
 
     let params = new URLSearchParams();
     params.append("q", query);

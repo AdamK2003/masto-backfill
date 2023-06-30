@@ -43,6 +43,8 @@ outputs:
     options:
       token: "your token here" # required, token for the instance (`resolve` on the search endpoint doesn't work without the token)
       maxRPS: 3 # optional, change depending on what your instance can handle, defaults to 3
+      posts: true # optional, defaults to true, whether to fetch posts, setting to false can be useful if you're also using fakerelay (which only supports fetching posts)
+      users: true # optional, defaults to true, whether to fetch users
 ```
 
 `type: fakerelay` - [FakeRelay](https://github.com/g3rv4/FakeRelay/) instance, highly recommended over the `masto` output if you have the means to run it - example config:
