@@ -23,31 +23,39 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const rateLimit = require('axios-rate-limit');
 
-// This output fetches posts on a Mastodon(-compatible) instance directly via the API
+// This output fetches posts via a FakeRelay (https://github.com/g3rv4/FakeRelay/) instance
 
-const MastoOutput = new OutputInterface(
-  'masto',
+const FakeRelayOutput = new OutputInterface(
+  'fakerelay',
   function (name, logger, options, globalOptions) {
 
     this.name = name;
-    this.logger = logger.child({ output: 'masto', name: name });
+    this.instanceName = options.instance;
+    this.logger = logger.child({ output: this.outputName, name: name });
     if(options?.logLevel) this.logger.level = options.logLevel;
 
+    this.logger.trace(`Creating FakeRelay instance ${name} with options ${JSON.stringify(options)}`);
+
+
+    if(!options.instance) {
+      throw new Error('No instance provided for FakeRelay instance ' + name);
+    }
     if(!options.token) {
-      throw new Error('No token provided for Mastodon instance ' + name);
+      throw new Error('No token provided for FakeRelay instance ' + name);
     }
 
     let client = rateLimit(
       axios.create({
-        baseURL: `https://${name}`,
-        timeout: options?.timeout || 15000,
+        baseURL: `https://${options.instance}`,
+        timeout: options?.timeout || 20000,
         headers: {
           'User-Agent': options?.userAgent || 'masto-backfill/1.0.0' + (globalOptions?.contact ? `; +${globalOptions.contact}` : ''),
           'Authorization': 'Bearer ' + options.token,
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
         }
       }),
       { 
-        maxRPS: options?.maxRPS || 3
+        maxRPS: options?.maxRPS || 5
       }
     );
   
@@ -73,16 +81,27 @@ const MastoOutput = new OutputInterface(
       return true;
     }
 
-    let params = new URLSearchParams();
-    params.append("q", query);
-    params.append('resolve', true);
+    if(query.startsWith('@')) {
+      this.logger.debug(`User fetching not supported on ${this.name}`);
+      return false;
+    }
+    
 
     try {
-      await this.client.get('/api/v2/search' + `?${params.toString()}`)
+
+
+      
+
+      let params = new URLSearchParams();
+      params.append('statusUrl', query);
+
+      await this.client.post('/index', params.toString());
+      
+
       this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
       this.fetched.add(query);
       this.fetchedCount++;
-      if(this.fetchedCount % 20 == 0) this.logger.info(`Progress: ${this.fetchedCount} objects on ${this.name}`);
+      if(this.fetchedCount % 20 == 0) this.logger.info(`Progress: ${this.fetchedCount} posts on ${this.name}`);
       return true;
     } catch (e) {
       this.logger.warn(`Error fetching ${query} on ${this.name}; error: ${e}`);
@@ -98,4 +117,4 @@ const MastoOutput = new OutputInterface(
   
 );
 
-module.exports = MastoOutput;
+module.exports = FakeRelayOutput;

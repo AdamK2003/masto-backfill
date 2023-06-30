@@ -23,10 +23,14 @@ const fetchUserRoutes = async (requests, eventEmitter, loggerInstance) => {
 
   let logger = loggerInstance.child({function: 'fetchUserRoutes'});
 
+  logger.trace(requests)
+
   let requestsOutput = requests;
 
   for (let instance in requests) {
     
+    logger.trace(`Fetching user routes for ${instance}`)
+
     for (let request in requests[instance].requests) {
 
       if (requests[instance].requests[request].type === 'user') {
@@ -75,12 +79,14 @@ const fetchUserRoutes = async (requests, eventEmitter, loggerInstance) => {
 
     }
 
+    // logger.trace(requestsOutput[instance].requests)
+
   }
 
-  // logger.info(requestsOutput);
+  logger.trace(requestsOutput);
 
-  eventEmitter.emit('fetchUserRoutesComplete', requestsOutput);
-  return requestsOutput;
+  return eventEmitter.emit('fetchUserRoutesComplete', requestsOutput);
+  // return requestsOutput;
 
 }
 

@@ -11,7 +11,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
@@ -37,6 +37,8 @@ logger = require('pino')({
 })
 
 const EventEmitter = require('events');
+
+const events = new EventEmitter();
 
 const { parseDirectives, fetchUserRoutes, getPosts } = require('./functions');
 const outputGenerators = require('./outputs');
@@ -86,19 +88,22 @@ for (let output of config.outputs) {
   let outputType = outputGenerators[output.type];
 
   outputs[`${output.type}-${output.name}`] = outputType.init(output.name, logger, output.options, config.global);
+  logger.trace(outputs[`${output.type}-${output.name}`])
 
 }
 
 
 
-const events = new EventEmitter();
 
 
-fetchUserRoutes(requests, events, logger);
 
 
 events.on('fetchUserRoutesComplete', (requestsOutput) => {
+  logger.trace('fetchUserRoutesComplete')
+  
   requests = requestsOutput;
+  
+  
   
   getPosts(requests, events, logger);
   
@@ -107,23 +112,24 @@ events.on('fetchUserRoutesComplete', (requestsOutput) => {
 
 
 events.on('newFetchables', (posts) => {
-
+  
   for (let output in outputs) {
     logger.debug(`Fetching ${posts.length} objects on ${outputs[output].name}`)
-
+    
     for (let post of posts) {
       
       outputs[output].fetch(post)
-
+      
     }
-
+    
   }
   //logger.info(posts);
-
+  
 })
 
 
 
+fetchUserRoutes(requests, events, logger);
 
 
 
@@ -132,11 +138,11 @@ let failed = false;
 let retries = config.global?.closeRetries || 3;
 
 process.on('beforeExit', async () => {
-
+  
   failed = false;
   if(closed) return;
   logger.info('Closing outputs')
-
+  
   for (let output in outputs) {
     let success = outputs[output].close();
     if(!success) {
@@ -144,7 +150,7 @@ process.on('beforeExit', async () => {
       logger.warn(`Failed to close output ${outputs[output].name}`)
     } 
   }
-
+  
   if(failed) {
     logger.warn(`Failed to close some outputs, ${retries} retries remaining`)
     retries--;
@@ -156,9 +162,9 @@ process.on('beforeExit', async () => {
       process.exit(1)
     }
   }
-
-
+  
+  
   logger.info('Outputs closed')
   closed = true
-
+  
 })

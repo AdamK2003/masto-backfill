@@ -19,6 +19,12 @@ outputs:
     name: jsonOutput # any name, will be used to identify the output in logs
     options:
       file: "./output.json" # output filename
+  - type: fakerelay # FakeRelay (https://github.com/g3rv4/FakeRelay/) output, I highly recommend using it instead of the `masto` output if you can for reasons detailed in the readme
+    name: "fakerelay!your.instance.tld" # can be anything, fakerelay url is in options because some people might want to use multiple tokens on the same relay
+    options:
+      instance: fakerelay.domain.tld # required, your FakeRelay domain
+      token: "yourTokenHere" # required, your FakeRelay API key for the desired instance
+      maxRPS: 7 # default for FakeRelay is 5, you can probably go higher than with a `masto` output on the same server
 directives: # those are described in more detail in the readme
   - instances:
       - instance1.tld

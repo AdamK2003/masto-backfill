@@ -127,7 +127,8 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   try {
     response = await client.get(url);
   } catch (e) {
-    logger.warn(`Could not get ${url} for ${instance}`);
+    logger.warn(`Could not get ${url} for ${instance}, error ${e.code}`);
+    logger.trace(e)
     return null;
   }
 
