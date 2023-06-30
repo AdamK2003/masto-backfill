@@ -143,15 +143,35 @@ events.on('newUsers', (users) => {
 
 
 let closed = false;
+let failed = false;
+let retries = config.global?.closeRetries || 3;
 
 process.on('beforeExit', async () => {
 
+  failed = false;
   if(closed) return;
   logger.info('Closing outputs')
 
   for (let output in outputs) {
-    outputs[output].close();
+    let success = outputs[output].close();
+    if(!success) {
+      failed = true;
+      logger.error(`Failed to close output ${outputs[output].name}`)
+    } 
   }
+
+  if(failed) {
+    logger.warn(`Failed to close some outputs, ${retries} retries remaining`)
+    retries--;
+    if(retries > 0) {
+      logger.info('Retrying')
+      process.emit('beforeExit')
+    } else {
+      logger.error('Failed to close outputs, exiting')
+      process.exit(1)
+    }
+  }
+
 
   logger.info('Outputs closed')
   closed = true
