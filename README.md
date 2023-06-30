@@ -14,6 +14,8 @@ The tool fetches the specified timelines from the specified instances, extracts 
 
 This WILL spam the output instances with requests and probably will take some time to complete if you're fetching a lot of posts. It pegged all the CPU cores on the Oracle VM I'm running [my own Pleroma instance](https://plrm.adamski2003.lol) on when I was testing the tool with a 3rps ratelimit, so keep that in mind. Please only run it on your own instance or with the permission of the instance admins. I'm not responsible for any damage caused by this tool.
 
+I highly recommend using the `fakerelay` output instead of `masto` if you have the means; the search endpoint used in `masto` fetches the post synchronously, while relayed posts from FakeRelay are fetched asynchronously and are deferred if the load is too high.
+
 (The input instances should be fine, they get much less requests and (more importantly) the requests are only for reading data, while the requests on the output instances actually cause (lots of) database updates.)
 
 ## How to use?
