@@ -29,6 +29,8 @@ I highly recommend using the `fakerelay` output instead of `masto` if you have t
 
 The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing output definitions, directives for groups of instances and timelines and directives for users. Public or tag timelines are specified in the `directives` array with instance domains, while users are specified separately in the `users` array. The syntax for directives is `timeline/user:amount:filter1:filter2:...`, where `timeline/user` is the `$public` timeline or a `tag`, or in the case of a user, a `@username@instance.tld`. `amount` is optional and is the amount of posts to fetch, can be omitted even if you're using filters (`timeline:filter1:filter2...` will work). Defaults to 40. The filters are also optional; they're different for each timeline type and are listed in the next section. The filters are applied in the order they're written in the config file. In case of conflicting filters, the last one will be used unless specified otherwise. You can have as many directives as you want; just keep in mind that fetching the posts on your target output(s) might take some time. If fetching a timeline fails, it will be skipped and a warning will be logged.
 
+The recommended configuration is a `masto` output with post fetching disabled and a `fakerelay` output (which can't fetch users) if you can get a fakerelay instance running. If you can't, use a `masto` output with both post and user fetching enabled (unless you don't want either of those, of course) and a low enough ratelimit (run `htop` or something similar on the server to see how much CPU usage the script is causing or watch the failure rates on fetches (usually timeouts, which are `ECONNABORTED` in the log) and adjust the ratelimit accordingly).
+
 ## Outputs
 
 Here's a list of outputs you can use:
@@ -47,7 +49,7 @@ outputs:
       users: true # optional, defaults to true, whether to fetch users
 ```
 
-`type: fakerelay` - [FakeRelay](https://github.com/g3rv4/FakeRelay/) instance, highly recommended over the `masto` output if you have the means to run it (see Warning section above) - example config:
+`type: fakerelay` - [FakeRelay](https://github.com/g3rv4/FakeRelay/) instance, highly recommended over the `masto` output if you have the means to run it (see Warning section above), can't fetch users - example config:
 
 ```yaml
 - type: fakerelay
