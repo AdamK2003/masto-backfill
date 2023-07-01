@@ -141,11 +141,16 @@ let closeRetries = config.global?.closeRetries || 3;
 process.on('beforeExit', async () => {
 
   let fetchFailed = false; 
+
   for (let output in outputs) {
-    if(outputs[output].failedCount > 0) {
-      logger.warn(`Output ${outputs[output].name} failed to fetch ${outputs[output].failedCount} objects`)
+
+    if(fetchRetries <= 0) break;
+
+    let errorCount = outputs[output].retry();
+
+    if(errorCount > 0) {
+      logger.warn(`Output ${outputs[output].name} failed to fetch ${errorCount} objects`)
       fetchFailed = true;
-      outputs[output].retry()
     }
   }
 
@@ -155,7 +160,6 @@ process.on('beforeExit', async () => {
     return;
   } else if(fetchFailed) {
     logger.error('Failed to fetch some objects, exiting')
-    process.exit(1)
   }
 
   

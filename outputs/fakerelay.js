@@ -115,21 +115,25 @@ const FakeRelayOutput = new OutputInterface(
     return true;
   },
   async function () {
-    // will be called if error count > 0, should retry any failed fetches, return value doesn't matter
+    // will be called if error count > 0, should retry any failed fetches, return amount of failed fetches
 
-    if(this.errorsCount == 0) return true;
+    if(this.errorsCount == 0) return 0;
 
     this.logger.info(`Retrying ${this.errorsCount} failed fetches on ${this.name}`);
 
+
+
     let errors = [...this.errors];
     this.errors.clear();
-    errorsCount = 0;
+    
+    let errorsCount = this.errorsCount;
+    this.errorsCount = 0;
 
     for (let item of errors) {
       this.fetch(item);
     }
 
-    return true;
+    return errorsCount;
   }
   
 );
