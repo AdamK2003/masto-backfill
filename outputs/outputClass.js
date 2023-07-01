@@ -18,11 +18,12 @@
 
 
 const OutputInterface = class {
-  constructor(outputName, initFunction, fetchFunction, closeFunction) {
+  constructor(outputName, initFunction, fetchFunction, closeFunction, retryFunction) {
     this.outputName = outputName;
     this.init = initFunction;
     this.fetch = fetchFunction;
     this.close = closeFunction;
+    this.retry = retryFunction;
   }
 }
 

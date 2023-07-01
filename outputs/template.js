@@ -56,6 +56,10 @@ const TemplateOutput = new OutputInterface(
   async function () {
     // will be called once when the program is exiting, should return true/false for whether the close was successful
     return true;
+  },
+  async function () {
+    // will be called if error count > 0, should retry any failed fetches, return value doesn't matter
+    return true;
   }
   
 );

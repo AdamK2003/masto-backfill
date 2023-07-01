@@ -47,7 +47,7 @@ outputs:
       users: true # optional, defaults to true, whether to fetch users
 ```
 
-`type: fakerelay` - [FakeRelay](https://github.com/g3rv4/FakeRelay/) instance, highly recommended over the `masto` output if you have the means to run it - example config:
+`type: fakerelay` - [FakeRelay](https://github.com/g3rv4/FakeRelay/) instance, highly recommended over the `masto` output if you have the means to run it (see Warning section above) - example config:
 
 ```yaml
 - type: fakerelay

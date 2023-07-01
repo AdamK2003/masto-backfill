@@ -82,6 +82,10 @@ const JSONOutput = new OutputInterface(
       return false;
     }
 
+  },
+  async function () {
+    // individual writes can't fail here, so this is not needed
+    return true;
   }
   
 );

@@ -134,27 +134,47 @@ fetchUserRoutes(requests, events, logger);
 
 
 let closed = false;
-let failed = false;
-let retries = config.global?.closeRetries || 3;
+let closeFailed = false;
+let fetchRetries = config.global?.fetchRetries || 3;
+let closeRetries = config.global?.closeRetries || 3;
 
 process.on('beforeExit', async () => {
+
+  let fetchFailed = false; 
+  for (let output in outputs) {
+    if(outputs[output].failedCount > 0) {
+      logger.warn(`Output ${outputs[output].name} failed to fetch ${outputs[output].failedCount} objects`)
+      fetchFailed = true;
+      outputs[output].retry()
+    }
+  }
+
+  if(fetchFailed && fetchRetries > 0) {
+    logger.warn(`Failed to fetch some objects, ${fetchRetries} retries remaining`)
+    fetchRetries--;
+    return;
+  } else if(fetchFailed) {
+    logger.error('Failed to fetch some objects, exiting')
+    process.exit(1)
+  }
+
   
-  failed = false;
+  closeFailed = false;
   if(closed) return;
   logger.info('Closing outputs')
   
   for (let output in outputs) {
     let success = outputs[output].close();
     if(!success) {
-      failed = true;
+      closeFailed = true;
       logger.warn(`Failed to close output ${outputs[output].name}`)
     } 
   }
   
-  if(failed) {
-    logger.warn(`Failed to close some outputs, ${retries} retries remaining`)
-    retries--;
-    if(retries > 0) {
+  if(closeFailed) {
+    logger.warn(`Failed to close some outputs, ${closeRetries} retries remaining`)
+    closeRetries--;
+    if(closeRetries > 0) {
       logger.warn('Retrying')
       process.emit('beforeExit')
     } else {

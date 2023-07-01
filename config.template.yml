@@ -1,7 +1,8 @@
 global:
   logLevel: info # pino log level
   contact: "https://your.instance.tld/you" # optional (but recommended), contact URL to be added to user-agent
-  closeRetries: 3 # optional, the amount of times the program will retry if closing one or more outputs fails
+  fetchRetries: 3 # optional, defaults to 3, the amount of times the program will retry if one or more outputs have failed fetches
+  closeRetries: 3 # optional, defaults to 3, the amount of times the program will retry if closing one or more outputs fails
   # inputMaxRPS: 1 # optional, I HIGHLY recommend not increasing this, defaults to 1rps
 outputs:
   - type: masto # mastodon (or MastoAPI compatible) instance

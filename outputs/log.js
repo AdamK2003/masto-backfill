@@ -55,6 +55,10 @@ const DummyLoggerOutput = new OutputInterface(
     // will be called once when the program is exiting, should return true/false for whether the close was successful
     this.logger.info(`Close called on dummy logger output ${this.name}`)
     return true;
+  },
+  async function () {
+    this.logger.info(`Retry called on dummy logger output ${this.name}`)
+    return true;
   }
   
 );
