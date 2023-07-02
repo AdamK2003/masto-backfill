@@ -31,6 +31,10 @@ The config is a [YAML file](https://yaml.org/spec/1.2.2/) containing output defi
 
 The recommended configuration is a `masto` output with post fetching disabled and a `fakerelay` output (which can't fetch users) if you can get a fakerelay instance running. If you can't, use a `masto` output with both post and user fetching enabled (unless you don't want either of those, of course) and a low enough ratelimit (run `htop` or something similar on the server to see how much CPU usage the script is causing or watch the failure rates on fetches (usually timeouts, which are `ECONNABORTED` in the log) and adjust the ratelimit accordingly).
 
+The program can (and, by default will) use a persistent SQLite3 database to store the fetched post URLs and user tags. This is useful if you want to run the program multiple times without fetching the same posts again. By default, the database is stored as `posts.db` in the current working directory, but you can change that in the config file. If you want to disable the database, set the database path to `:memory:` - this will cause the database to be stored in memory and discarded when the program exits.
+
+The database is always used by the outputs, but you can also enable skipping already fetched posts while fetching posts from the input instances by setting `input.skip` to true and adding the outputs you want to skip to `input.skipInstances`. Example: if you have a directive with a timeline argument `$public:100`, but your instance already has 50 posts, the program will fetch 100 posts from the input instances and 50 posts will be fetched on the output instances with `skip` disabled, while if it's enabled, it'll fetch at least 150 posts from the input instances to make sure that 100 new posts are fetched on the output instances.
+
 ## Outputs
 
 Here's a list of outputs you can use:
