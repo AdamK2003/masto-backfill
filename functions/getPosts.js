@@ -92,7 +92,7 @@ const getTimelinePosts = async (instance, request, client, eventEmitter, loggerI
   }
 
   
-  getNextPage(instance, path, preservedParamsStr, client, maxId, count, eventEmitter, logger, db, options);
+  getNextPage(instance, path, preservedParamsStr, client, maxId, count, eventEmitter, logger, db, options, options?.retries || 3);
 
   // logger.info(maxId);
 
@@ -101,7 +101,7 @@ const getTimelinePosts = async (instance, request, client, eventEmitter, loggerI
 }
 
 
-const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance, db, options) => {
+const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance, db, options, retries) => {
 
   let logger;
 
@@ -129,7 +129,17 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   } catch (e) {
     logger.warn(`Could not get ${url} for ${instance}, error ${e.code}`);
     logger.trace(e)
-    return null;
+
+    if(retries > 0) {
+      logger.info(`Retrying ${url} for ${instance} in 5 seconds`);
+      setTimeout(() => {
+        getNextPage(instance, path, params, client, maxId, count, eventEmitter, logger, db, options, retries - 1);
+      }, 5000);
+    } else {
+      logger.warn(`Could not get ${url} for ${instance} after ${options.retries} retries, skipping`);
+    }
+
+     return null;
   }
 
   // logger.info(response.data[response.data.length - 1]);
@@ -199,7 +209,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
 
   if(newCount <= 0) return;
 
-  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger, db, options);
+  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger, db, options, options.retries || 3);
   
   
 }

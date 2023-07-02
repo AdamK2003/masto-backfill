@@ -7,6 +7,7 @@ global:
   closeRetries: 3 # optional, defaults to 3, the amount of times the program will retry if closing one or more outputs fails
   dbPath: ./posts.db # path to persistent sqlite3 database, defaults to ./posts.db, you can use `:memory:` if you don't want persistence
 input:
+  retries: 3 # optional, defaults to 3, the amount of times the program will retry a fetch on an input, applies per request
   skip: false # skip already fetched posts while fetching data from input instances? (explanation in readme)
   skipInstances: # list of output instances to skip if the above is enabled - use database identifiers (output name, unless specified otherwise)
     - your.instance.tld
