@@ -28,6 +28,7 @@ const JSONOutput = new OutputInterface(
     // will be called once when the output is initialized, should return a new instance of the output (`this`)
 
     this.name = name;
+    this.dbName = options.dbName || name;
     this.logger = logger.child({output: this.outputName, name: name});
     if(options?.logLevel) this.logger.level = options.logLevel;
 
@@ -35,7 +36,7 @@ const JSONOutput = new OutputInterface(
 
     this.file = options.file;
 
-    this.fetched = new Set();
+    this.fetched = new Set(); // we don't really need the db for this? maybe later
     this.posts = new Set();
     this.users = new Set();
     // this.errors = new Set();
@@ -43,7 +44,7 @@ const JSONOutput = new OutputInterface(
 
     return this;
   },
-  async function (query, options) {
+  async function (query, db, options) {
     // will be called for each post/user, should return true/false for whether the write was successful
 
     if(this.fetched.has(query)) {

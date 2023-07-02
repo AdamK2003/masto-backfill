@@ -30,6 +30,7 @@ const FakeRelayOutput = new OutputInterface(
   function (name, logger, options, globalOptions) {
 
     this.name = name;
+    this.dbName = options.dbName || name;
     this.instanceName = options.instance;
     this.logger = logger.child({ output: this.outputName, name: name });
     if(options?.logLevel) this.logger.level = options.logLevel;
@@ -67,23 +68,25 @@ const FakeRelayOutput = new OutputInterface(
 
     this.client = client;
 
-    this.fetched = new Set();
-    this.errors = new Set();
+
     this.fetchedCount = 0;
     this.errorsCount = 0;
 
     return this;
   },
-  async function (query, options) {
+  async function (query, db, options) {
 
-    if(this.fetched.has(query)) {
-      this.logger.debug(`Already fetched ${query} on ${this.name}`);
-      return true;
-    }
 
     if(query.startsWith('@')) {
       this.logger.debug(`User fetching not supported on ${this.name}`);
-      return false;
+      return true;
+    }
+
+    let dbResponse = await db.all("SELECT * FROM fetched WHERE object = ? and instance = ? and status = 'success'", [query, `${this.dbName}`]);
+
+    if(dbResponse.length > 0) {
+      this.logger.debug(`Already fetched ${query} on ${this.name}`);
+      return true;
     }
     
 
@@ -99,13 +102,16 @@ const FakeRelayOutput = new OutputInterface(
       
 
       this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
-      this.fetched.add(query);
+    
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success'", [query, `${this.dbName}`, this.outputName, global.runTimestamp]);
+    
       this.fetchedCount++;
       if(this.fetchedCount % 20 == 0) this.logger.info(`Progress: ${this.fetchedCount} posts on ${this.name}`);
       return true;
     } catch (e) {
       this.logger.warn(`Error fetching ${query} on ${this.name}; error: ${e}`);
-      this.errors.add(query);
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed'", 
+        [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if unsuccessful
       this.errorsCount++;
       return false;
     }
@@ -114,7 +120,7 @@ const FakeRelayOutput = new OutputInterface(
     // No cleanup needed
     return true;
   },
-  async function () {
+  async function (db) {
     // will be called if error count > 0, should retry any failed fetches, return amount of failed fetches
 
     if(this.errorsCount == 0) return 0;
@@ -123,14 +129,14 @@ const FakeRelayOutput = new OutputInterface(
 
 
 
-    let errors = [...this.errors];
-    this.errors.clear();
+    let errors = await db.all("SELECT * FROM fetched WHERE status = 'error' and instance = ? and type = ?", [`${this.dbName}`, this.outputName])
     
+
     let errorsCount = this.errorsCount;
     this.errorsCount = 0;
 
     for (let item of errors) {
-      this.fetch(item);
+      this.fetch(item.object, db);
     }
 
     return errorsCount;

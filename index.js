@@ -23,18 +23,46 @@ const fs = require('fs');
 const axiosRetry = require('axios-retry');
 const rateLimit = require('axios-rate-limit');
 
+const SQLite3 = require('node-sqlite3') // WHY do I need an extra wrapper for async/await support??
+
 const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'));
 
-logger = require('pino')({
-  level: config.global?.logLevel || 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      ignore: 'pid,hostname'
+const dbPath = config.global?.dbPath || './posts.db';
+
+global.runTimestamp = Date.now();
+
+const db = new SQLite3(dbPath)
+db.open()
+
+
+
+
+db.run('create table if not exists fetched (object text, status text, instance text, type text, runTimestamp integer, constraint pk_obj_inst primary key (object, instance))')
+
+const pino = require('pino');
+
+const transports = pino.transport({
+  targets: [
+    {
+      level: config.global?.logLevel || 'info',
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        ignore: 'pid,hostname'
+        }
+    },
+    {
+      level: config.global?.logFileLevel || 'info',
+      target: 'pino/file',
+      options: {
+        destination: './masto-backfill.log',
+      }
+      
     }
-  }
+  ]
 })
+
+logger = pino(transports)
 
 const EventEmitter = require('events');
 
@@ -87,7 +115,7 @@ for (let output of config.outputs) {
   logger.info(`Adding output ${output.name}`)
   let outputType = outputGenerators[output.type];
 
-  outputs[`${output.type}-${output.name}`] = outputType.init(output.name, logger, output.options, config.global);
+  outputs[`${output.type}-${output.name}`] = outputType.init(output.name, logger, output.options, config.global, db);
   logger.trace(outputs[`${output.type}-${output.name}`])
 
 }
@@ -105,7 +133,7 @@ events.on('fetchUserRoutesComplete', (requestsOutput) => {
   
   
   
-  getPosts(requests, events, logger);
+  getPosts(requests, events, logger, db, config.input);
   
 })
 
@@ -118,7 +146,7 @@ events.on('newFetchables', (posts) => {
     
     for (let post of posts) {
       
-      outputs[output].fetch(post)
+      outputs[output].fetch(post, db)
       
     }
     
@@ -135,6 +163,7 @@ fetchUserRoutes(requests, events, logger);
 
 let closed = false;
 let closeFailed = false;
+let errorCount = 0;
 let fetchRetries = config.global?.fetchRetries || 3;
 let closeRetries = config.global?.closeRetries || 3;
 
@@ -146,7 +175,9 @@ process.on('beforeExit', async () => {
 
     if(fetchRetries <= 0) break;
 
-    let errorCount = outputs[output].retry();
+
+    errorCount = await outputs[output].retry(db);
+
 
     if(errorCount > 0) {
       logger.warn(`Output ${outputs[output].name} failed to fetch ${errorCount} objects`)
@@ -166,6 +197,7 @@ process.on('beforeExit', async () => {
   closeFailed = false;
   if(closed) return;
   logger.info('Closing outputs')
+
   
   for (let output in outputs) {
     let success = outputs[output].close();
@@ -174,6 +206,8 @@ process.on('beforeExit', async () => {
       logger.warn(`Failed to close output ${outputs[output].name}`)
     } 
   }
+
+  // await db.close();
   
   if(closeFailed) {
     logger.warn(`Failed to close some outputs, ${closeRetries} retries remaining`)
@@ -190,5 +224,10 @@ process.on('beforeExit', async () => {
   
   logger.info('Outputs closed')
   closed = true
+  process.exit(0)
   
+})
+
+process.on('exit', () => {
+  db.close();
 })

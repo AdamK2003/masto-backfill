@@ -27,6 +27,7 @@ const DummyLoggerOutput = new OutputInterface(
     // will be called once when the output is initialized, should return a new instance of the output (`this`)
 
     this.name = name;
+    this.dbName = options.dbName || `log-${name}`;
     this.logger = logger.child({output: 'log', name: name});
     if(options?.logLevel) this.logger.level = options.logLevel;
 
@@ -39,26 +40,32 @@ const DummyLoggerOutput = new OutputInterface(
     
     return this;
   },
-  async function (query, options) {
+  async function (query, db, options) {
     // will be called for each post/user, should return true/false for whether the write was successful
 
-    
-    if (this.fetched.has(query)) {
+    let dbResponse = await db.all("SELECT * FROM fetched WHERE object = ? and instance = ? and status = 'success'", [query, `${this.dbName}`]);
+    logger.trace(dbResponse)
+    if(dbResponse.length > 0) {
       this.logger.debug(`Dummy logger output ${this.name} already fetched query ${query}`);
-    } else {
-      this.logger.info(`Dummy logger output ${this.name} called with query ${query}`);
-      this.fetched.add(query);
+      return true;
     }
+    
+
+    this.logger.info(`Dummy logger output ${this.name} called with query ${query}`);
+    // this.fetched.add(query);
+    
+    await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success'", [query, `${this.dbName}`, this.outputName, global.runTimestamp]);
+
 
   },
   function () {
     // will be called once when the program is exiting, should return true/false for whether the close was successful
-    this.logger.info(`Close called on dummy logger output ${this.name}`)
+    this.logger.info(`Close called on dummy logger output ${this.name}`);
     return true;
   },
   async function () {
-    this.logger.info(`Retry called on dummy logger output ${this.name}`)
-    return true;
+    this.logger.info(`Retry called on dummy logger output ${this.name}`);
+    return 0;
   }
   
 );

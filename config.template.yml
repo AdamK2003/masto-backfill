@@ -1,9 +1,15 @@
 global:
   logLevel: info # pino log level
+  logFileLevel: debug # pino log level for the log files
   contact: "https://your.instance.tld/you" # optional (but recommended), contact URL to be added to user-agent
+  # inputMaxRPS: 1 # optional, I HIGHLY recommend not increasing this, defaults to 1rps
   fetchRetries: 3 # optional, defaults to 3, the amount of times the program will retry if one or more outputs have failed fetches
   closeRetries: 3 # optional, defaults to 3, the amount of times the program will retry if closing one or more outputs fails
-  # inputMaxRPS: 1 # optional, I HIGHLY recommend not increasing this, defaults to 1rps
+  dbPath: ./posts.db # path to persistent sqlite3 database, defaults to ./posts.db, you can use `:memory:` if you don't want persistence
+input:
+  skip: false # skip already fetched posts while fetching data from input instances? (explanation in readme)
+  skipInstances: # list of output instances to skip if the above is enabled - use database identifiers (output name, unless specified otherwise)
+    - your.instance.tld
 outputs:
   - type: masto # mastodon (or MastoAPI compatible) instance
     enabled: true # optional, works for any output, output will be skipped if false, true if omitted; alternative to commenting out entries
@@ -27,6 +33,7 @@ outputs:
     options:
       instance: fakerelay.domain.tld # required, your FakeRelay domain
       token: "yourTokenHere" # required, your FakeRelay API key for the desired instance
+      dbName: your.instance.tld # will be used as the instance id in the persistent database, set to your instance domain to prevent duplicate entries with `masto`
       maxRPS: 7 # default for FakeRelay is 5, you can probably go higher than with a `masto` output on the same server
 directives: # those are described in more detail in the readme
   - instances:

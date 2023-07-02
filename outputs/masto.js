@@ -30,6 +30,7 @@ const MastoOutput = new OutputInterface(
   function (name, logger, options, globalOptions) {
 
     this.name = name;
+    this.dbName = options.dbName || name;
     this.logger = logger.child({ output: 'masto', name: name });
     if(options?.logLevel) this.logger.level = options.logLevel;
 
@@ -69,12 +70,8 @@ const MastoOutput = new OutputInterface(
 
     return this;
   },
-  async function (query, options) {
+  async function (query, db, options) {
 
-    if(this.fetched.has(query)) {
-      this.logger.debug(`Already fetched ${query} on ${this.name}`);
-      return true;
-    }
 
     if(query.startsWith('@')) {
       if(!this.usersEnabled) {
@@ -88,6 +85,13 @@ const MastoOutput = new OutputInterface(
       }
     }
 
+    let dbResponse = await db.all("SELECT * FROM fetched WHERE object = ? and instance = ? and status = 'success'", [query, `${this.dbName}`]);
+
+    if(dbResponse.length > 0) {
+      this.logger.debug(`Already fetched ${query} on ${this.name}`);
+      return true;
+    }
+
 
 
     let params = new URLSearchParams();
@@ -96,24 +100,33 @@ const MastoOutput = new OutputInterface(
 
     try {
       await this.client.get('/api/v2/search' + `?${params.toString()}`)
+
       this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
-      this.fetched.add(query);
+
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success'", 
+        [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if successful
+
       this.fetchedCount++;
       if(this.fetchedCount % 20 == 0) this.logger.info(`Progress: ${this.fetchedCount} objects on ${this.name}`);
+
       return true;
     } catch (e) {
       this.logger.warn(`Error fetching ${query} on ${this.name}; error: ${e}`);
-      this.errors.add(query);
+
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed'", 
+        [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if unsuccessful
+
       this.errorsCount++;
       return false;
     }
   },
   function () {
     // No cleanup needed
+    logger.info(`Fetched ${this.fetchedCount} objects on ${this.name}, ${this.errorsCount} failed`)
     return true;
   },
   async function () {
-    // will be called if error count > 0, should retry any failed fetches, return amount of failed fetches
+    // will be called before closing outputs, should retry any failed fetches, return amount of failed fetches
 
     if(this.errorsCount == 0) return 0;
 

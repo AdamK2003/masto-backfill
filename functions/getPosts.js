@@ -18,7 +18,7 @@
 
 
 
-const getPosts = async (requests, eventEmitter, loggerInstance) => {
+const getPosts = async (requests, eventEmitter, loggerInstance, db, options) => {
 
   let logger = loggerInstance.child({function: 'getPosts'});
 
@@ -30,7 +30,7 @@ const getPosts = async (requests, eventEmitter, loggerInstance) => {
 
       // logger.info(requests[instance].requests[request])
 
-      getTimelinePosts(instance, requests[instance].requests[request], requests[instance].client, eventEmitter, logger);
+      getTimelinePosts(instance, requests[instance].requests[request], requests[instance].client, eventEmitter, logger, db, options);
 
       // add posts to posts array
 
@@ -50,7 +50,7 @@ const getPosts = async (requests, eventEmitter, loggerInstance) => {
 
 
 
-const getTimelinePosts = async (instance, request, client, eventEmitter, loggerInstance) => {
+const getTimelinePosts = async (instance, request, client, eventEmitter, loggerInstance, db, options) => {
 
   let logger = loggerInstance.child({function: 'getTimelinePosts'});
 
@@ -92,7 +92,7 @@ const getTimelinePosts = async (instance, request, client, eventEmitter, loggerI
   }
 
   
-  getNextPage(instance, path, preservedParamsStr, client, maxId, count, eventEmitter, logger);
+  getNextPage(instance, path, preservedParamsStr, client, maxId, count, eventEmitter, logger, db, options);
 
   // logger.info(maxId);
 
@@ -101,7 +101,7 @@ const getTimelinePosts = async (instance, request, client, eventEmitter, loggerI
 }
 
 
-const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance) => {
+const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance, db, options) => {
 
   let logger;
 
@@ -137,7 +137,33 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   let posts = [];
   let users = [];
 
+  let skipped = false;
+
+  
+
   for (let post of response.data) {
+
+    let dbPosts = [];
+
+    if(options?.skip) {
+      
+      let skipInstances = options?.skipInstances
+
+
+
+      dbPosts = await db.all("SELECT * FROM fetched WHERE object = ? and instance in (?) and status = 'success'", [post.url, skipInstances.join(',')]);
+
+      logger.trace(dbPosts)
+
+    }
+
+    if(dbPosts.length > 0 && options?.skip) {
+      logger.debug(`Skipping ${post.url} on ${instance} as it already exists on ${dbPosts[0].instance}`);
+      skipped = true;
+      continue;
+    }
+
+
     posts.push(post.url);
     let user = post.account.acct;
     if(!user.startsWith('@')) {
@@ -148,7 +174,9 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
     }
   }
 
-  if(posts.length === 0) {
+  // logger.warn(posts)
+
+  if(posts.length === 0 && !skipped) {
     logger.info(`No more posts found on ${instance}${path}`);
     return;
   }
@@ -171,7 +199,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
 
   if(newCount <= 0) return;
 
-  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger);
+  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger, db, options);
   
   
 }

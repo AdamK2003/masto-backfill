@@ -2,6 +2,7 @@
 /*.json
 
 /*.db
+/*.log
 
 # dependencies
 node_modules

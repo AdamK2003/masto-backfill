@@ -38,28 +38,33 @@ const TemplateOutput = new OutputInterface(
 
     return this;
   },
-  async function (query, options) {
+  async function (query, db, options) {
     // will be called for each post/user, should return true/false for whether the write was successful (only use false for retryable/unexpected errors, like network errors)
 
-    if(this.fetched.has(query)) {
-      // maybe do logging
+    let dbResponse = await db.all("SELECT * FROM fetched WHERE object = ? and instance = ? and status = 'success'", [query, `${this.dbName}`]);
+
+    if(dbResponse.length > 0) {
+      // already fetched
       return true;
     }
 
     // do the actual fetching here
 
-    this.fetched.add(query); // if successful
-    // this.errors.add(query); // if unsuccessful
+    await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(pk_obj_inst) DO UPDATE SET status = 'success'", 
+      [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if successful
+
+    // await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?)", 
+      // [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if unsuccessful
 
 
   },
-  async function () {
+  function () {
     // will be called once when the program is exiting, should return true/false for whether the close was successful
     return true;
   },
-  async function () {
+  function () { // needs to be synchronous
     // will be called if error count > 0, should retry any failed fetches, return value doesn't matter
-    return true;
+    return 0;
   }
   
 );
