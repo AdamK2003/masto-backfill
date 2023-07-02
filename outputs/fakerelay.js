@@ -118,6 +118,7 @@ const FakeRelayOutput = new OutputInterface(
   },
   function () {
     // No cleanup needed
+    logger.info(`Fetched ${this.fetchedCount} objects on ${this.name}, ${this.errorsCount} failed`)
     return true;
   },
   async function (db) {
