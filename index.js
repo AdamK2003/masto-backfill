@@ -86,7 +86,7 @@ for (let instance in requests) {
   requests[instance].client = rateLimit(
     axios.create({
       baseURL: `https://${instance}`,
-      timeout: 10000,
+      timeout: 20000,
       headers: {
         'User-Agent': 'masto-backfill/1.0.0' + (config.global?.contact ? `; +${config.global.contact}` : '')
       }
@@ -97,7 +97,7 @@ for (let instance in requests) {
   );
 
   axiosRetry(requests[instance].client, {
-    retries: 3,
+    retries: 5,
     shouldResetTimeout: true,
     retryDelay: (retryCount) => { return retryCount * 1000 } // axiosRetry.exponentialDelay
   });
