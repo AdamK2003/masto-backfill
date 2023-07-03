@@ -53,7 +53,7 @@ const fetchUserRoutes = async (requests, eventEmitter, loggerInstance) => {
           response = await requests[instance].client.get(requestPath + paramsString)
         } catch(err) {
           // if 404, remove request
-          if (err.response.status === 404) {
+          if (err?.response?.status === 404) {
             logger.warn(`User id: 404 on ${instance}${requestPath}${paramsString}`)
             delete requestsOutput[instance].requests[request];
             continue;
