@@ -123,11 +123,14 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   logger.info(`${count} posts remaining on ${instance}${path}`);
 
   let response;
+
   
   try {
     response = await client.get(url);
-    if(response == prevResponse) {
+    // logger.warn(response.data[0]);
+    if(response?.data[0]?.id == prevResponse?.data[0]?.id) {
       logger.warn(`Got same response as last time on ${instance}${path}, skipping`);
+      // throw new Error('Same response as last time');
       return;
     }
   } catch (e) {
@@ -137,7 +140,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
     if(retries > 0) {
       logger.info(`Retrying ${url} for ${instance} in 5 seconds`);
       setTimeout(() => {
-        getNextPage(instance, path, params, client, maxId, count, eventEmitter, logger, db, options, retries - 1);
+        getNextPage(instance, path, params, client, maxId, count, eventEmitter, logger, db, options, retries - 1, prevResponse);
       }, 5000);
     } else {
       logger.warn(`Could not get ${url} for ${instance} after ${options.retries} retries, skipping`);
@@ -213,7 +216,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
 
   if(newCount <= 0) return;
 
-  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger, db, options, options.retries || 3);
+  getNextPage(instance, path, params, client, lastId, newCount, eventEmitter, logger, db, options, options.retries || 3, response);
   
   
 }
