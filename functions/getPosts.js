@@ -101,7 +101,7 @@ const getTimelinePosts = async (instance, request, client, eventEmitter, loggerI
 }
 
 
-const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance, db, options, retries) => {
+const getNextPage = async (instance, path, params, client, maxId, count, eventEmitter, loggerInstance, db, options, retries, prevResponse) => {
 
   let logger;
 
@@ -126,6 +126,10 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   
   try {
     response = await client.get(url);
+    if(response == prevResponse) {
+      logger.warn(`Got same response as last time on ${instance}${path}, skipping`);
+      return;
+    }
   } catch (e) {
     logger.warn(`Could not get ${url} for ${instance}, error ${e.code}`);
     logger.trace(e)
@@ -139,7 +143,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
       logger.warn(`Could not get ${url} for ${instance} after ${options.retries} retries, skipping`);
     }
 
-     return null;
+     return;
   }
 
   // logger.info(response.data[response.data.length - 1]);
