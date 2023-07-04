@@ -19,7 +19,7 @@
 
 const OutputInterface = require('./outputClass.js');
 
-
+// This output just saves posts and users as `pending` in the database for later fetching
 
 const TemplateOutput = new OutputInterface(
   'template',
@@ -42,7 +42,7 @@ const TemplateOutput = new OutputInterface(
   async function (query, db, options) {
     // will be called for each post/user, should return true/false for whether the write was successful (only use false for retryable/unexpected errors, like network errors)
 
-    let dbResponse = await db.all("SELECT * FROM fetched WHERE object = ? and instance = ? and status = 'success'", [query, `${this.dbName}`]);
+    let dbResponse = await db.all("SELECT * FROM fetched WHERE object = ? and instance = ? and status in ('success', 'pending')", [query, `${this.dbName}`]);
 
     if(dbResponse.length > 0) {
       // already fetched
@@ -51,20 +51,21 @@ const TemplateOutput = new OutputInterface(
 
     // do the actual fetching here
 
-    await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success'", 
+    await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'pending', ?, ?, ?) ON CONFLICT(object,instance) DO nothing", 
       [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if successful
 
-    // await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed', fails = fails + 1", 
+    // await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?)", 
       // [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if unsuccessful
 
 
   },
   function () {
     // will be called once when the program is exiting, should do cleanup and return true/false for whether the cleanup was successful
+    // nothing to clean up here, the main db SHOULD NOT be closed here
     return true;
   },
   function () { // needs to be synchronous
-    // will be called when the program is exiting, should asynchronously retry any failed fetches, should return the amount of failed fetches
+    // will be called when the program is exiting, should retry any failed fetches, return value doesn't matter
     return 0;
   }
   

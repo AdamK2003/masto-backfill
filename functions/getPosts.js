@@ -120,7 +120,7 @@ const getNextPage = async (instance, path, params, client, maxId, count, eventEm
   }
   url = url.replace('&', '?');
 
-  logger.info(`${count} posts remaining on ${instance}${path}`);
+  logger.info(`${count} posts remaining on ${instance}${path}`, {url});
 
   let response;
 

@@ -37,7 +37,7 @@ db.open()
 
 
 
-db.run('create table if not exists fetched (object text, status text, instance text, type text, runTimestamp integer, constraint pk_obj_inst primary key (object, instance))')
+db.run('create table if not exists fetched (object text, status text, instance text, type text, runTimestamp integer, fails integer default 0, constraint pk_obj_inst primary key (object, instance))')
 
 const pino = require('pino');
 

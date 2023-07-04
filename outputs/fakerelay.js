@@ -76,6 +76,11 @@ const FakeRelayOutput = new OutputInterface(
   },
   async function (query, db, options) {
 
+    if(!query) {
+      this.logger.warn(`No query provided for ${this.name}`)
+      return true;
+    }
+
 
     if(query.startsWith('@')) {
       this.logger.debug(`User fetching not supported on ${this.name}`);
@@ -110,7 +115,7 @@ const FakeRelayOutput = new OutputInterface(
       return true;
     } catch (e) {
       this.logger.warn(`Error fetching ${query} on ${this.name}; error: ${e}`);
-      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed'", 
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed', fails = fails + 1", 
         [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if unsuccessful
       this.errorsCount++;
       return false;

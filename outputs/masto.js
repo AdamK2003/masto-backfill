@@ -113,7 +113,7 @@ const MastoOutput = new OutputInterface(
     } catch (e) {
       this.logger.warn(`Error fetching ${query} on ${this.name}; error: ${e}`);
 
-      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed'", 
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'failed', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'failed', fails = fails + 1", 
         [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if unsuccessful
 
       this.errorsCount++;
