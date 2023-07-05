@@ -21,7 +21,7 @@ I highly recommend using the `fakerelay` output instead of `masto` if you have t
 ## How to use?
 
 - Clone the repository and run `npm i` to install the dependencies
-- Copy `config.template.yml` to `config.yml` and edit it (you can get a token [here](https://getauth.thms.uk/?scopes=read&client_name=masto-backfill))
+- Copy `template.config.yml` to `config.yml` and edit it (you can get a token [here](https://getauth.thms.uk/?scopes=read&client_name=masto-backfill))
 - Run `node index.js` or `npm run start`
 - Watch the magic happen
 
