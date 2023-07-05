@@ -2,6 +2,7 @@
 /*.json
 
 /*.db
+/*.db*
 /*.log
 
 # dependencies
