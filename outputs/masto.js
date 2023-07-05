@@ -103,7 +103,7 @@ const MastoOutput = new OutputInterface(
 
       this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
 
-      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success'", 
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success', fails = 0", 
         [query, `${this.dbName}`, this.outputName, global.runTimestamp]); // if successful
 
       this.fetchedCount++;

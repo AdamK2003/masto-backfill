@@ -108,7 +108,7 @@ const FakeRelayOutput = new OutputInterface(
 
       this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
     
-      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success'", [query, `${this.dbName}`, this.outputName, global.runTimestamp]);
+      await db.all("INSERT INTO fetched (object, status, instance, type, runTimestamp) VALUES (?, 'success', ?, ?, ?) ON CONFLICT(object,instance) DO UPDATE SET status = 'success', fails = 0", [query, `${this.dbName}`, this.outputName, global.runTimestamp]);
     
       this.fetchedCount++;
       if(this.fetchedCount % 20 == 0) this.logger.info(`Progress: ${this.fetchedCount} posts on ${this.name}`);
