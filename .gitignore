@@ -1,5 +1,7 @@
 /config.yml
 /*.json
+*.yml
+*.old
 
 /*.db
 /*.db*
