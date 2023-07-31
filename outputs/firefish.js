@@ -44,7 +44,7 @@ const FirefishOutput = new OutputInterface(
         timeout: options?.timeout || 15000,
         headers: {
           'User-Agent': options?.userAgent || 'masto-backfill/1.0.0' + (globalOptions?.contact ? `; +${globalOptions.contact}` : ''),
-          'Authorization': options.token,
+          'Authorization': 'Bearer ' + options.token,
         }
       }),
       { 
