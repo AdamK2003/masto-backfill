@@ -153,4 +153,4 @@ const FirefishOutput = new OutputInterface(
   
 );
 
-module.exports = MastoOutput;
+module.exports = FirefishOutput;
