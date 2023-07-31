@@ -72,6 +72,10 @@ const FirefishOutput = new OutputInterface(
   },
   async function (query, db, options) {
 
+    if(!query) {
+      this.logger.debug(`No query provided for ${this.name}`);
+      return true;
+    }
 
     if(query.startsWith('@')) {
       if(!this.usersEnabled) {
