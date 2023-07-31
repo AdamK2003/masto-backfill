@@ -103,7 +103,7 @@ const FirefishOutput = new OutputInterface(
     
 
     try {
-      await this.client.get('/api/ap/show', data)
+      await this.client.post('/api/ap/show', data)
 
       this.logger.debug(`Fetched ${query} on ${this.name}`); // there's gonna be a LOT of that, so I'm making it debug
 
