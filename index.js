@@ -145,6 +145,11 @@ events.on('newFetchables', (posts) => {
     logger.debug(`Fetching ${posts.length} objects on ${outputs[output].name}`)
     
     for (let post of posts) {
+
+      if(!post) {
+        this.logger.debug(`No query provided for ${output}`);
+        continue;
+      }
       
       outputs[output].fetch(post, db)
       
