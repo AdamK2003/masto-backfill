@@ -147,7 +147,7 @@ events.on('newFetchables', (posts) => {
     for (let post of posts) {
 
       if(!post) {
-        this.logger.debug(`No query provided for ${output}`);
+        logger.debug(`No query provided for ${output}`);
         continue;
       }
       
