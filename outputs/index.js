@@ -24,4 +24,5 @@ module.exports = {
   'log': require('./log'),
   'json': require('./json'),
   'fakerelay': require('./fakerelay'),
+  'firefish': require('./firefish'),
 }
