@@ -82,6 +82,10 @@ const FirefishOutput = new OutputInterface(
         this.logger.debug(`Users disabled on ${this.name}, not fetching ${query}`);
         return true;
       }
+
+      query = query.split('@')
+      query = `https://${query[1]}/${query[2]}`
+
     } else {
       if(!this.postsEnabled) {
         this.logger.debug(`Posts disabled on ${this.name}, not fetching ${query}`);
